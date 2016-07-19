@@ -29,7 +29,9 @@ Esc key for Skip
         <!--/**************************************************Custom Styling*******************************************-->
 
         <style>
-			.myTooltip {
+
+
+			#tooltip {
 				position: fixed;
 				top: 50px;
 				left: 50px;
@@ -41,7 +43,10 @@ Esc key for Skip
 				transition: all 0.5s ease-in-out;
 				border-color: grey;
 				pointer-events: auto;
+				@apply(--walk-tour-tooltip);
+				display : none;
 			}
+
 			#overlay_back {
 				position: fixed;
 				z-index: 90000;
@@ -148,7 +153,7 @@ Esc key for Skip
 
         <div id="overlay_back" on-tap="_nextAction"></div>
         <div id="overlay">
-            <div id="tooltip" class="myTooltip">
+            <div id="tooltip">
                 <div id="title-icon">
 
                     <paper-icon-button noink icon="walk-tour-icons:clear" id="cross" on-tap="_crossAction"></paper-icon-button>
@@ -170,7 +175,7 @@ Esc key for Skip
 
                     <paper-icon-button noink icon="walk-tour-icons:chevron-right" id="next" on-tap="_nextAction"></paper-icon-button>
                     <paper-button noink raised id="skip" on-tap="_crossAction">
-                        Skip Tour
+                        {{skipTour}}
                     </paper-button>
 
                 </div>
@@ -190,6 +195,15 @@ Esc key for Skip
     <script>
 		Polymer({
 			is : 'walk-tour',
+
+			attached : function() {
+
+				this.async(function() {
+					console.log("test");
+
+				});
+
+			},
 			/********************************************  Properties Start  ***************************************************/
 			properties : {
 				_walkthrough_steps : {
@@ -203,9 +217,14 @@ Esc key for Skip
 					type : Number,
 					value : -1
 				},
+				skipTour : {
+					type : String,
+					value : "Skip Tour"
+				},
 				welcomeShow : {
 					type : Boolean,
-					value : true
+					value : true,
+					observer : '_onWelcomeShowChanged'
 				},
 				welcomeTitle : {
 					type : String,
@@ -256,8 +275,18 @@ Esc key for Skip
 				}
 			},
 
+			_onWelcomeShowChanged : function(welcomeShow) {
+
+				if (welcomeShow == true) {
+
+					// this.$.tooltip.style.display = "initial";
+				}
+
+			},
+
 			_handleEvent : function(e) {
 
+				this.$.tooltip.style.display = "initial";
 				this.push('_walkthrough_steps', e.detail);
 				var i = 0,
 				    j = 0;
@@ -314,6 +343,7 @@ Esc key for Skip
 				var msg,
 				    i = 0;
 				var newData = this._newData;
+
 				var tooltip_width = this.$.tooltip.offsetWidth;
 				var tooltip_height;
 				var pos_x;
