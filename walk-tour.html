@@ -196,14 +196,6 @@ Esc key for Skip
 		Polymer({
 			is : 'walk-tour',
 
-			attached : function() {
-
-				this.async(function() {
-					console.log("test");
-
-				});
-
-			},
 			/********************************************  Properties Start  ***************************************************/
 			properties : {
 				_walkthrough_steps : {
@@ -223,8 +215,7 @@ Esc key for Skip
 				},
 				welcomeShow : {
 					type : Boolean,
-					value : true,
-					observer : '_onWelcomeShowChanged'
+					value : true
 				},
 				welcomeTitle : {
 					type : String,
@@ -273,15 +264,6 @@ Esc key for Skip
 				default:
 					this._crossAction();
 				}
-			},
-
-			_onWelcomeShowChanged : function(welcomeShow) {
-
-				if (welcomeShow == true) {
-
-					// this.$.tooltip.style.display = "initial";
-				}
-
 			},
 
 			_handleEvent : function(e) {
