@@ -1,453 +1,449 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="walk-tour-icons.html">
-<link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../iron-signals/iron-signals.html">
 <link rel="import" href="../app-storage/app-localstorage/app-localstorage-document.html">
-<link rel="import" href="../iron-a11y-keys/iron-a11y-keys.html">
-
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="walk-tour-behavior.html">
+<link rel="import" href="walk-tour-icons.html">
 <!--
-`walk-tour`
-Presents a web application by showing contextual dialogs and
-highlighting elements on the page.
+  `walk-tour`
+  Presents a web application by showing contextual dialogs and
+  highlighting elements on the page.
 
-This element shows a guided tour through a web application. The
-different steps of the tour can be easily configured.
+  This element shows a guided tour through a web application. The
+  different steps of the tour can be easily configured.
 
-Tour can be controlled using keyboard events as well mouse click events
+  Tour can be controlled using keyboard events as well mouse click events
 
-Right key for next
-Left key  for Previous
-Esc key for Skip
+  Right key for next
+  Left key  for Previous
+  Esc key for Skip
 
-@demo demo/index.html
+  @demo demo/index.html
 -->
 
 <dom-module id="walk-tour">
-    <template>
 
-        <!--/**************************************************Custom Styling*******************************************-->
+  <template>
 
-        <style>
+    <!--/**************************************************Custom Styling*******************************************-->
 
+    <style>
+     #tooltip {
+        position: fixed;
+        top: 50px;
+        left: 50px;
+        height: auto;
+        max-width: 600px;
+        min-width: 100px;
+        color: #FFFFFF;
+        transition: all 0.5s ease;
+        transition: all 0.5s ease-in-out;
+        border-color: grey;
+        pointer-events: auto;
+        @apply(--walk-tour-tooltip);
+        display : none;
+      }
+      
+      #overlay_back {
+        position: fixed;
+        z-index: 90000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0); /* Black w/ opacity */
+        visibility: hidden;
+      }
 
-			#tooltip {
-				position: fixed;
-				top: 50px;
-				left: 50px;
-				height: auto;
-				max-width: 600px;
-				min-width: 100px;
-				color: #FFFFFF;
-				transition: all 0.5s ease;
-				transition: all 0.5s ease-in-out;
-				border-color: grey;
-				pointer-events: auto;
-				@apply(--walk-tour-tooltip);
-				display : none;
-			}
+      #overlay {
+        position: fixed;
+        z-index: 99999;
+        left: -295px;
+        top: -100px;
+        width: 0px;
+        height: 0px;
+        border-radius: 4px;
+        overflow: auto; /* Enable scroll if needed */
+        background: rgba(0,0,0,0);
+        box-shadow: 0px 0px 40px 100px rgba(0,0,0,0) inset, 0px 0px 0px 10000px rgba(0,0,0,0.9);
+        transition: all 0.5s ease-in-out;
+        visibility: hidden;
+        display : none;
+      }
 
-			#overlay_back {
-				position: fixed;
-				z-index: 90000;
-				left: 0;
-				top: 0;
-				width: 100%;
-				height: 100%;
-				overflow: auto; /* Enable scroll if needed */
-				background-color: rgba(0,0,0,0); /* Black w/ opacity */
-				visibility: hidden;
-			}
+      .info {
+        opacity: 0.70;
+      }
 
-			#overlay {
-				position: fixed;
-				z-index: 99999;
-				left: -295px;
-				top: -100px;
-				width: 0px;
-				height: 0px;
-				border-radius: 4px;
-				overflow: auto; /* Enable scroll if needed */
-				background: rgba(0,0,0,0);
-				box-shadow: 0px 0px 40px 100px rgba(0,0,0,0) inset, 0px 0px 0px 10000px rgba(0,0,0,0.9);
-				transition: all 0.5s ease-in-out;
-				visibility: hidden;
-				display : none;
-			}
+      #next {
 
-			.info {
-				opacity: 0.70;
-			}
+        float: right;
+        margin-right: 10px;
+        margin-bottom: 15px;
+        background-color: #424242;
+        border-radius: 50%;
+      }
+      #next:hover {
+        background-color: #757575;
+      }
+      #previous {
+        float: left;
+        margin-left: 70px;
+        margin-bottom: 15px;
+        border-radius: 50%;
+      }
+      #previous:hover {
+        background-color: #757575;
+      }
+      #title {
+        border-radius: 5px;
+        font-size: 20px;
+        margin-top: 12px;
+        width: 100%;
+        padding-bottom: 15px;
+        height: auto;
+      }
 
-			#next {
+      #msg {
+        text-align: justify;
+        font-size: 16px;
+        padding: 10px 15px 10px 15px;
+      }
 
-				float: right;
-				margin-right: 10px;
-				margin-bottom: 15px;
-				background-color: #424242;
-				border-radius: 50%;
-			}
-			#next:hover {
-				background-color: #757575;
-			}
-			#previous {
-				float: left;
-				margin-left: 70px;
-				margin-bottom: 15px;
-				border-radius: 50%;
-			}
-			#previous:hover {
-				background-color: #757575;
-			}
-			#title {
-				border-radius: 5px;
-				font-size: 20px;
-				margin-top: 12px;
-				width: 100%;
-				padding-bottom: 15px;
-				height: auto;
-			}
+      #title-icon {
+        display: block;
+        overflow: auto;
+      }
 
-			#msg {
-				text-align: justify;
-				font-size: 16px;
-				padding: 10px 15px 10px 15px;
-			}
+      #icc {
+        float: left;
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-top: 10px;
+      }
+      #footer {
+        display: inline;
+      }
+      #pg_no {
+        float: left;
+        margin-left: 15px;
+        margin-top: 10px;
+        color: #f44336;
+        opacity: 0.7;
+        font-size: 13px;
+      }
+      #cross {
+        color: #e57373;;
+        float: right;
+        margin-top: 3px;
+        margin-right: 3px;
+      }
+      #skip {
 
-			#title-icon {
-				display: block;
-				overflow: auto;
-			}
+        float: left;
+        width: 98px;
+      }
 
-			#icc {
-				float: left;
-				margin-left: 10px;
-				margin-right: 10px;
-				margin-top: 10px;
-			}
-			#footer {
-				display: inline;
-			}
-			#pg_no {
-				float: left;
-				margin-left: 15px;
-				margin-top: 10px;
-				color: #f44336;
-				opacity: 0.7;
-				font-size: 13px;
-			}
-			#cross {
-				color: #e57373;;
-				float: right;
-				margin-top: 3px;
-				margin-right: 3px;
-			}
-			#skip {
+    </style>
 
-				float: left;
-				width: 98px;
-			}
+    <!--/************************************************  Custom Styling Ends  *******************************************-->
 
-        </style>
+    <div id="overlay_back" on-tap="_nextAction"></div>
+    <div id="overlay">
+      <div id="tooltip" >
+        <div id="title-icon">
 
-        <!--/************************************************  Custom Styling Ends  *******************************************-->
+          <paper-icon-button noink icon="walk-tour-icons:clear" id="cross" on-tap="_crossAction"></paper-icon-button>
+          <iron-icon icon="walk-tour-icons:help-outline" id="icc"></iron-icon>
 
-        <div id="overlay_back" on-tap="_nextAction"></div>
-        <div id="overlay">
-            <div id="tooltip">
-                <div id="title-icon">
-
-                    <paper-icon-button noink icon="walk-tour-icons:clear" id="cross" on-tap="_crossAction"></paper-icon-button>
-                    <iron-icon icon="walk-tour-icons:help-outline" id="icc"></iron-icon>
-
-                    <div id="title"></div>
-
-                </div>
-
-                <div class="info" id="msg">
-
-                </div>
-
-                <div id="footer">
-
-                    <div id="pg_no"></div>
-
-                    <paper-icon-button noink icon="walk-tour-icons:chevron-left" id="previous" on-tap="_prevAction"></paper-icon-button>
-
-                    <paper-icon-button noink icon="walk-tour-icons:chevron-right" id="next" on-tap="_nextAction"></paper-icon-button>
-                    <paper-button noink raised id="skip" on-tap="_crossAction">
-                        {{skipTour}}
-                    </paper-button>
-
-                </div>
-            </div>
+          <div id="title"></div>
 
         </div>
 
-        <app-localstorage-document id="storage" key="walk-tour-viewed" data="{{_cookies}}"></app-localstorage-document>
+        <div class="info" id="msg">
 
-        <iron-a11y-keys target="[[target]]" keys="left right esc" on-keys-pressed="_checkButton"></iron-a11y-keys>
+        </div>
 
-        <iron-signals on-iron-signal-tour="_handleEvent"></iron-signals>
+        <div id="footer">
 
-    </template>
-    <!--***************************************************  Script Starts  **************************************** -->
+          <div id="pg_no"></div>
 
-    <script>
-		Polymer({
-			is : 'walk-tour',
+          <paper-icon-button noink icon="walk-tour-icons:chevron-left" id="previous" on-tap="_prevAction"></paper-icon-button>
 
-			/********************************************  Properties Start  ***************************************************/
-			properties : {
-				_walkthrough_steps : {
-					type : Array,
-					value : function() {
-						return [];
-					}
-				},
+          <paper-icon-button noink icon="walk-tour-icons:chevron-right" id="next" on-tap="_nextAction"></paper-icon-button>
+          <paper-button noink raised id="skip" on-tap="_crossAction">
+            {{skipTour}}
+          </paper-button>
 
-				_i_value : {
-					type : Number,
-					value : -1
-				},
-				skipTour : {
-					type : String,
-					value : "Skip Tour"
-				},
-				welcomeShow : {
-					type : Boolean,
-					value : true
-				},
-				welcomeTitle : {
-					type : String,
-					value : "Welcome"
-				},
-				welcomeMsg : {
-					type : String,
-					value : "You can go to and fro between elements using mouse as well as keyboard (left, right keys and esc key to exit). Click on screen to move to next."
-				},
-				_cookies : {
-					type : Object,
-					value : function() {
-						return {};
-					}
-				},
-				_newData : {
-					type : Array,
-					value : function() {
-						return [];
-					}
-				},
+        </div>
+      </div>
 
-				_check : {
-					type : Boolean,
-					value : false
-				},
-				target : {
-					type : Object,
-					value : function() {
-						return document.body;
-					}
-				},
+    </div>
 
-			},
+    <app-localstorage-document id="storage" key="walk-tour-viewed" data="{{_cookies}}"></app-localstorage-document>
 
-			/********************************************  Properties Ends   ***************************************************/
-			_checkButton : function(e) {
-				switch(e.detail.key) {
+    <iron-a11y-keys target="[[target]]" keys="left right esc" on-keys-pressed="_checkButton"></iron-a11y-keys>
 
-				case "right":
-					this._nextAction();
-					break;
-				case "left":
-					this._prevAction();
-					break;
-				default:
-					this._crossAction();
-				}
-			},
+    <iron-signals on-iron-signal-tour="_handleEvent"></iron-signals>
 
-			_handleEvent : function(e) {
+  </template>
+  <!--***************************************************  Script Starts  **************************************** -->
 
-				this.$.tooltip.style.display = "initial";
-				this.push('_walkthrough_steps', e.detail);
-				var i = 0,
-				    j = 0;
-				var id = this._walkthrough_steps[this._walkthrough_steps.length - 1].id;
+  <script>
+Polymer({
+is : 'walk-tour',
+    /********************************************  Properties Start  ***************************************************/
+    properties : {
+      _walkthrough_steps : {
+        type : Array,
+        value : function() {
+          return [];
+        }
+      },
+      
+      skipTour : {
+        type : String,
+        value : "Skip Tour"
+      },
+      _i_value : {
+        type : Number,
+        value : -1
+      },
+      welcomeShow : {
+        type : Boolean,
+        value : true
+      },
+      welcomeTitle : {
+        type : String,
+        value : "Welcome"
+      },
+      welcomeMsg : {
+        type : String,
+        value : "You can go to and fro between elements using mouse as well as keyboard (left, right keys and esc key to exit). Click on screen to move to next."
+      },
+      _cookies : {
+        type : Object,
+        value : function() {
+          return {};
+        }
+      },
+      _newData : {
+        type : Array,
+        value : function() {
+          return [];
+        }
+      },
 
-				if (!( id in this._cookies) || (this._cookies[id] != this._walkthrough_steps[this._walkthrough_steps.length - 1].version )) {
+      _check : {
+        type : Boolean,
+        value : false
+      },
+      target : {
+        type : Object,
+        value : function() {
+          return document.body;
+        }
+      },
 
-					this.push('_newData', this._walkthrough_steps[this._walkthrough_steps.length - 1]);
-					this._cookies[id] = this._walkthrough_steps[this._walkthrough_steps.length - 1].version;
-					this.$.storage.setStoredValue(id, 1);
+    },
 
-					this._check = true;
-				}
+    /********************************************  Properties Ends   ***************************************************/
+    _checkButton : function(e) {
+      switch(e.detail.key) {
 
-				if (this._newData.length == 1 && this._check) {
-					this.$.overlay.style.display = "initial";
-					this.$.overlay_back.style.display = "initial";
-					this._check = false;
-					this._fetch();
-				}
+        case "right":
+          this._nextAction();
+          break;
+        case "left":
+          this._prevAction();
+          break;
+        default:
+          this._crossAction();
+      }
+    },
 
-			},
+    _handleEvent : function(e) {
+      this.$.tooltip.style.display = "initial";
+      this.push('_walkthrough_steps', e.detail);
+      var i = 0,
+      j = 0;
+      var id = this._walkthrough_steps[this._walkthrough_steps.length - 1].id;
 
-			_nextAction : function() {
-				if (this._i_value < this._newData.length) {
-					this._i_value = this._i_value + 1;
-					this._renderTooltip();
-				}
-			},
+      if (!( id in this._cookies) || (this._cookies[id] != this._walkthrough_steps[this._walkthrough_steps.length - 1].version )) {
 
-			_prevAction : function() {
-				if (this._i_value > 0) {
-					this._i_value = this._i_value - 1;
-					this._renderTooltip();
-				}
-			},
+        this.push('_newData', this._walkthrough_steps[this._walkthrough_steps.length - 1]);
+        this._cookies[id] = this._walkthrough_steps[this._walkthrough_steps.length - 1].version;
+        this.$.storage.setStoredValue(id, 1);
 
-			_crossAction : function() {
-				this.$.overlay.style.display = "none";
-				this.$.overlay_back.style.display = "none";
-				this._newData = [];
-				this._check = true;
-				this.welcomeShow = false;
-				this._i_value = -1;
+        this._check = true;
+      }
 
-			},
+      if (this._newData.length == 1 && this._check) {
+        this.$.overlay.style.display = "initial";
+        this.$.overlay_back.style.display = "initial";
+        this._check = false;
+        this._fetch();
+      }
 
-			/**********************************************  Render tooltip Function  ************************************************/
-			_renderTooltip : function() {
+    },
 
-				/******************************************* Initialization of variables  **********************************/
-				var prev_button = this.$.previous;
-				var next_button = this.$.next;
-				var msg,
-				    i = 0;
-				var newData = this._newData;
+    _nextAction : function() {
+      if (this._i_value < this._newData.length) {
+        this._i_value = this._i_value + 1;
+        this._renderTooltip();
+      }
+    },
 
-				var tooltip_width = this.$.tooltip.offsetWidth;
-				var tooltip_height;
-				var pos_x;
-				var pos_y;
-				var w = window,
-				    d =
-				    document,
-				    e = d.documentElement,
-				    g = d.getElementsByTagName('body')[0],
-				    width = w.innerWidth || e.clientWidth || g.clientWidth,
-				    height = w.innerHeight || e.clientHeight || g.clientHeight;
+    _prevAction : function() {
+      if (this._i_value > 0) {
+        this._i_value = this._i_value - 1;
+        this._renderTooltip();
+      }
+    },
 
-				/****************************************************** Initialization of variables Ends******************************/
+    _crossAction : function() {
+      this.$.overlay.style.display = "none";
+      this.$.overlay_back.style.display = "none";
+      this._newData = [];
+      this._check = true;
+      this.welcomeShow = false;
+      this._i_value = -1;
 
-				prev_button.style.display = "inherit";
-				this.$.pg_no.style.display = "inline";
-				this.$.skip.style.display = "none";
+    },
 
-				if (this._i_value < newData.length)/* && this._i_value>=0 */
-				{
-					if (this._i_value == 0)
-						prev_button.style.display = "none";
-					pos_x = newData[this._i_value].x;
-					pos_y = newData[this._i_value].y;
+    /**********************************************  Render tooltip Function  ************************************************/
+    _renderTooltip : function() {
 
-					//next_button.innerHTML = 'Next<iron-icon icon="walk-tour-icons:chevron-right"></iron-icon>';
-					//prev_button.innerHTML = '<iron-icon icon="walk-tour-icons:chevron-left"></iron-icon>Prev';
+      /******************************************* Initialization of variables  **********************************/
+      var prev_button = this.$.previous;
+      var next_button = this.$.next;
+      var msg,
+      i = 0;
+      var newData = this._newData;
+      var tooltip_width = this.$.tooltip.offsetWidth;
+      var tooltip_height;
+      var pos_x;
+      var pos_y;
+      var w = window,
+      d =
+        document,
+      e = d.documentElement,
+      g = d.getElementsByTagName('body')[0],
+      width = w.innerWidth || e.clientWidth || g.clientWidth,
+      height = w.innerHeight || e.clientHeight || g.clientHeight;
 
-					this.$.overlay.style.left = newData[this._i_value].el_left - 10 + 'px';
-					this.$.overlay.style.top = newData[this._i_value].el_top - 10 + 'px';
-					this.$.overlay.style.width = newData[this._i_value].el_width + 20 + 'px';
-					this.$.overlay.style.height = newData[this._i_value].el_height + 20 + 'px';
+      /****************************************************** Initialization of variables Ends******************************/
 
-					this.$.title.innerHTML = newData[this._i_value].title;
-					this.$.pg_no.innerHTML = (this._i_value + 1) + " of " + newData.length;
+      prev_button.style.display = "inherit";
+      this.$.pg_no.style.display = "inline";
+      this.$.skip.style.display = "none";
 
-					tooltip_height = this.$.tooltip.offsetHeight;
+      if (this._i_value < newData.length)/* && this._i_value>=0 */
+      {
+        if (this._i_value == 0)
+          prev_button.style.display = "none";
+        pos_x = newData[this._i_value].x;
+        pos_y = newData[this._i_value].y;
 
-					if ( typeof (newData[this._i_value].message) == 'string')
-						msg = newData[this._i_value].message;
-					else {
-						msg = newData[this._i_value].message[0] + '<ul>';
+        //next_button.innerHTML = 'Next<iron-icon icon="walk-tour-icons:chevron-right"></iron-icon>';
+        //prev_button.innerHTML = '<iron-icon icon="walk-tour-icons:chevron-left"></iron-icon>Prev';
 
-						for ( i = 1; i < newData[this._i_value].message.length; i++)
-							msg += '<li>' + newData[this._i_value].message[i] + '</li>';
+        this.$.overlay.style.left = newData[this._i_value].el_left - 10 + 'px';
+        this.$.overlay.style.top = newData[this._i_value].el_top - 10 + 'px';
+        this.$.overlay.style.width = newData[this._i_value].el_width + 20 + 'px';
+        this.$.overlay.style.height = newData[this._i_value].el_height + 20 + 'px';
 
-						msg += '</ul>';
-					}
-					this.$.msg.innerHTML = msg;
-					/*************************************************Width Checking****************************************/
+        this.$.title.innerHTML = newData[this._i_value].title;
+        this.$.pg_no.innerHTML = (this._i_value + 1) + " of " + newData.length;
 
-					if (pos_x + tooltip_width >= width) {
-						pos_x = pos_x - tooltip_width - 5;
+        tooltip_height = this.$.tooltip.offsetHeight;
 
-						if (pos_x <= newData[this._i_value].x && pos_x >= newData[this._i_value].x - newData[this._i_value].el_width)
-							pos_x = newData[this._i_value].x - newData[this._i_value].el_width - tooltip_width - 10;
+        if ( typeof (newData[this._i_value].message) == 'string')
+          msg = newData[this._i_value].message;
+        else {
+          msg = newData[this._i_value].message[0] + '<ul>';
 
-					}
+          for ( i = 1; i < newData[this._i_value].message.length; i++)
+            msg += '<li>' + newData[this._i_value].message[i] + '</li>';
 
-					if (pos_x <= 0) {
-						pos_x = pos_x - pos_x + 5;
-					}
-					/**********************************************Width Checking Ends****************************************/
+          msg += '</ul>';
+        }
+        this.$.msg.innerHTML = msg;
+        /*************************************************Width Checking****************************************/
 
-					/**************************************************Height Checking****************************************/
+        if (pos_x + tooltip_width >= width) {
+          pos_x = pos_x - tooltip_width - 5;
 
-					if (pos_y + tooltip_height >= height) {
-						if (pos_y + newData[this._i_value].el_height >= height) {
-							pos_y = pos_y - tooltip_height - 15;
-						} else
-							pos_y = pos_y - tooltip_height - newData[this._i_value].el_height - 15;
+          if (pos_x <= newData[this._i_value].x && pos_x >= newData[this._i_value].x - newData[this._i_value].el_width)
+            pos_x = newData[this._i_value].x - newData[this._i_value].el_width - tooltip_width - 10;
 
-						if (pos_y <= 0) {
-							pos_y = pos_y + tooltip_height;
+        }
 
-						}
-					}
-					/*******************************Height Checking Ends*************************************************/
+        if (pos_x <= 0) {
+          pos_x = pos_x - pos_x + 5;
+        }
+        /**********************************************Width Checking Ends****************************************/
 
-					this.$.tooltip.style.left = (pos_x + 5) + 'px';
-					this.$.tooltip.style.top = (pos_y + 10) + 'px';
+        /**************************************************Height Checking****************************************/
 
-				}
-				/*****************************************If Ends*****************************************************/
+        if (pos_y + tooltip_height >= height) {
+          if (pos_y + newData[this._i_value].el_height >= height) {
+            pos_y = pos_y - tooltip_height - 15;
+          } else
+            pos_y = pos_y - tooltip_height - newData[this._i_value].el_height - 15;
 
-				else {
+          if (pos_y <= 0) {
+            pos_y = pos_y + tooltip_height;
 
-					this._newData = [];
-					this._check = true;
-					this.welcomeShow = false;
-					this._i_value = -1;
-					this.$.overlay.style.display = "none";
-					this.$.overlay_back.style.display = "none";
+          }
+        }
+        /*******************************Height Checking Ends*************************************************/
 
-				}
+        this.$.tooltip.style.left = (pos_x + 5) + 'px';
+        this.$.tooltip.style.top = (pos_y + 10) + 'px';
 
-			},
+      }
+      /*****************************************If Ends*****************************************************/
 
-			_fetch : function() {
-				this.$.overlay.style.visibility = "visible";
-				this.$.overlay_back.style.visibility = "visible";
+      else {
 
-				/*************************************** Styling Using JavaScript******************************/
-				if (this._newData.length == 0) {
-					this.$.overlay.style.display = "none";
-					this.$.overlay_back.style.display = "none";
-				} else if (!this.welcomeShow || ("wlcm" in this._cookies)) {
-					this._i_value++;
-					this._renderTooltip();
-				} else {
+        this._newData = [];
+        this._check = true;
+        this.welcomeShow = false;
+        this._i_value = -1;
+        this.$.overlay.style.display = "none";
+        this.$.overlay_back.style.display = "none";
 
-					this.$.msg.innerHTML = this.welcomeMsg;
-					this.$.title.innerHTML = this.welcomeTitle;
-					this.$.previous.style.display = "none";
-					this.$.pg_no.style.display = "none";
-					this._cookies["wlcm"] = "1";
-				}
-				/*************************************Fetch Function Ends************************************************/
-			}
-		});
-    </script>
-    <!--*******************************************************Script Ends************************************* -->
+      }
+
+    },
+
+    _fetch : function() {
+      this.$.overlay.style.visibility = "visible";
+      this.$.overlay_back.style.visibility = "visible";
+
+      /*************************************** Styling Using JavaScript******************************/
+      if (this._newData.length == 0) {
+        this.$.overlay.style.display = "none";
+        this.$.overlay_back.style.display = "none";
+      } else if (!this.welcomeShow || ("wlcm" in this._cookies)) {
+        this._i_value++;
+        this._renderTooltip();
+      } else {
+
+        this.$.msg.innerHTML = this.welcomeMsg;
+        this.$.title.innerHTML = this.welcomeTitle;
+        this.$.previous.style.display = "none";
+        this.$.pg_no.style.display = "none";
+        this._cookies["wlcm"] = "1";
+      }
+      /*************************************Fetch Function Ends************************************************/
+    }
+});
+  </script>
+  <!--*******************************************************Script Ends************************************* -->
 
 </dom-module>
