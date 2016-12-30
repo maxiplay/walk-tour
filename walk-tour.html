@@ -185,7 +185,8 @@
 
     <iron-a11y-keys target="[[target]]" keys="left right esc" on-keys-pressed="_checkButton"></iron-a11y-keys>
 
-    <iron-signals on-iron-signal-tour="_handleEvent"></iron-signals>
+    <iron-signals on-iron-signal-preparewalktour="_handleEvent"></iron-signals>
+    <iron-signals on-iron-signal-showwalktour="_fetch"></iron-signals>
 
   </template>
   <!--***************************************************  Script Starts  **************************************** -->
@@ -283,7 +284,7 @@ is : 'walk-tour',
         this.$.overlay.style.display = "initial";
         this.$.overlay_back.style.display = "initial";
         this._check = false;
-        this._fetch();
+        //this._fetch();
       }
 
     },
@@ -436,7 +437,12 @@ is : 'walk-tour',
         this.$.title.innerHTML = this.welcomeTitle;
         this.$.previous.style.display = "none";
         this.$.pg_no.style.display = "none";
-        this._cookies["wlcm"] = "1";
+        
+        
+        
+        this._cookies["wlcm"] = 1;
+        this.$.storage.setStoredValue("wlcm", 1);
+        
       }
       /*************************************Fetch Function Ends************************************************/
     }

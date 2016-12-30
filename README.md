@@ -19,30 +19,34 @@ Esc key for Skip
 1. Import walk-tour.html. If you want to use custom tour element import just the walk-tour-behavior.
 2. Include `<walk-tour></walk-tour>` tag in project
 3. Add MyBehaviors.WalkTourBehavior to component behaviors. 
-4. Call `_showhelp` Function from Web Compomnent whose help is to be shown
+4. Call `_prepareHelp` Function from Web Compomnent whose help is to be shown to prepare contextual dialogs
+5. Call `_showHelp` to launch the walk tour !
 
-this._showHelp( element , Message Title, Message Body, Version Number);
+this._prepareHelp( element , Message Title, Message Body, Version Number);
+this._showHelp();
 
 ### Version Number is if we want to update message later on  
 ### Default Value : 1
 
 For Eg
 ```js
-this._showHelp( this.$.searchboxx ,  "Search Box" ," I am search box",1);
+this._prepareHelp( this.$.searchboxx ,  "Search Box" ," I am search box",1);
+this._showHelp();
 ```
 > Note that id is used as a key to save cookies. So remember to set an id to the element.
 
 ### Updated Message for same Webcomponent
 
 ```js
-this._showHelp( this.$.searchboxx ,  "Search Box" ," I am search box with changed message",2);
+this._prepareHelp( this.$.searchboxx ,  "Search Box" ," I am search box with changed message",2);
+this._showHelp();
 ```
 ### Pass array of message can be passed to use message in list view
 
 For Eg
 
 ```js
-this._showHelp(this.$.searchboxx ,"Search Box", ["Search Your Queries Here Powered By Google!",
+this._prepareHelp(this.$.searchboxx ,"Search Box", ["Search Your Queries Here Powered By Google!",
 "Bullets can be used as well",
 "Bullet 2","Bullet 3"],
 1);
@@ -53,10 +57,10 @@ this._showHelp(this.$.searchboxx ,"Search Box", ["Search Your Queries Here Power
 For Eg to show help after 15 sec 
 
 ```js
+this._prepareHelp(this.$.searchboxx ,"Search Box", ["Search Your Queries Here Powered By Google!","Bullets can be used as well","Bullet 2","Bullet 3"],1);
 
 this.async(function() {
-this._showHelp(this.$.searchboxx ,"Search Box", ["Search Your Queries Here Powered By Google!","Bullets can be used as well","Bullet 2","Bullet 3"],1);
-
+	this._showHelp();
 }
 ,15000);
 
